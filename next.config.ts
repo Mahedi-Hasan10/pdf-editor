@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   transpilePackages: ["react-pdf", "pdfjs-dist"],
+  turbopack: {},
   webpack: (config, { dev }) => {
     // Required for react-pdf to work with Next.js
     config.resolve.alias.canvas = false;
