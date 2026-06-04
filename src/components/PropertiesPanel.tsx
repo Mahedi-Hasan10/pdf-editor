@@ -40,11 +40,72 @@ export default function PropertiesPanel() {
     updateElement(currentPage, element.id, updates);
   };
 
+  const handleUpdateRows = (newRows: number) => {
+    if (newRows < 1) return;
+    const currentRows = element.rows || 3;
+    const currentCols = element.cols || 3;
+    let newTableData = element.tableData ? element.tableData.map(row => [...row]) : [];
+    let newRowHeights = element.rowHeights ? [...element.rowHeights] : [];
+
+    if (newRows > currentRows) {
+      for (let r = currentRows; r < newRows; r++) {
+        newTableData.push(Array(currentCols).fill(""));
+        newRowHeights.push(25);
+      }
+    } else {
+      newTableData = newTableData.slice(0, newRows);
+      newRowHeights = newRowHeights.slice(0, newRows);
+    }
+
+    const newHeight = newRowHeights.reduce((a, b) => a + b, 0);
+
+    handleUpdate({
+      rows: newRows,
+      tableData: newTableData,
+      rowHeights: newRowHeights,
+      height: newHeight,
+    });
+  };
+
+  const handleUpdateCols = (newCols: number) => {
+    if (newCols < 1) return;
+    const currentRows = element.rows || 3;
+    const currentCols = element.cols || 3;
+    let newTableData = element.tableData ? element.tableData.map(row => [...row]) : [];
+    let newColWidths = element.colWidths ? [...element.colWidths] : [];
+
+    if (newCols > currentCols) {
+      for (let r = 0; r < currentRows; r++) {
+        while (newTableData[r].length < newCols) {
+          newTableData[r].push("");
+        }
+      }
+      for (let c = currentCols; c < newCols; c++) {
+        newColWidths.push(100);
+      }
+    } else {
+      for (let r = 0; r < currentRows; r++) {
+        newTableData[r] = newTableData[r].slice(0, newCols);
+      }
+      newColWidths = newColWidths.slice(0, newCols);
+    }
+
+    const newWidth = newColWidths.reduce((a, b) => a + b, 0);
+
+    handleUpdate({
+      cols: newCols,
+      tableData: newTableData,
+      colWidths: newColWidths,
+      width: newWidth,
+    });
+  };
+
   return (
     <div className="properties-panel">
       <div className="properties-header">
         <h3>
           {element.type === "text" && "Text"}
+          {element.type === "table" && "Table"}
           {element.type === "image" && "Image"}
           {element.type === "shape" && `Shape: ${element.shapeType}`}
           {element.type === "draw" && "Drawing"}
@@ -125,6 +186,88 @@ export default function PropertiesPanel() {
             </div>
           </div>
         </div>
+
+        {/* Table Properties */}
+        {element.type === "table" && (
+          <div className="property-group">
+            <h4>Table Structure</h4>
+            <div className="property-grid">
+              <div className="property-field">
+                <label>Rows</label>
+                <input
+                  type="number"
+                  min="1"
+                  value={element.rows || 3}
+                  onChange={(e) => handleUpdateRows(Number(e.target.value))}
+                />
+              </div>
+              <div className="property-field">
+                <label>Columns</label>
+                <input
+                  type="number"
+                  min="1"
+                  value={element.cols || 3}
+                  onChange={(e) => handleUpdateCols(Number(e.target.value))}
+                />
+              </div>
+            </div>
+
+            <h4>Cell Typography</h4>
+            <div className="property-field">
+              <label>Font Family</label>
+              <select
+                value={element.fontFamily || "Helvetica"}
+                onChange={(e) => handleUpdate({ fontFamily: e.target.value })}
+              >
+                {fontFamilies.map((f) => (
+                  <option key={f} value={f}>{f}</option>
+                ))}
+              </select>
+            </div>
+            <div className="property-grid">
+              <div className="property-field">
+                <label>Text Size</label>
+                <select
+                  value={element.fontSize || 12}
+                  onChange={(e) => handleUpdate({ fontSize: Number(e.target.value) })}
+                >
+                  {fontSizes.map((s) => (
+                    <option key={s} value={s}>{s}px</option>
+                  ))}
+                </select>
+              </div>
+              <div className="property-field">
+                <label>Text Color</label>
+                <input
+                  type="color"
+                  value={element.color || "#000000"}
+                  onChange={(e) => handleUpdate({ color: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="property-field">
+              <label>Style</label>
+              <div className="btn-group">
+                <button
+                  className={`btn btn-icon btn-sm ${element.fontWeight === "bold" ? "active" : ""}`}
+                  onClick={() =>
+                    handleUpdate({ fontWeight: element.fontWeight === "bold" ? "normal" : "bold" })
+                  }
+                >
+                  <strong>B</strong>
+                </button>
+                <button
+                  className={`btn btn-icon btn-sm ${element.fontStyle === "italic" ? "active" : ""}`}
+                  onClick={() =>
+                    handleUpdate({ fontStyle: element.fontStyle === "italic" ? "normal" : "italic" })
+                  }
+                >
+                  <em>I</em>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Text Properties */}
         {element.type === "text" && (
